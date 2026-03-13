@@ -4,7 +4,7 @@ import StatusBadge from '@/components/StatusBadge';
 import SketchPreview from '@/components/SketchPreview';
 import PaymentUpload from '@/components/PaymentUpload';
 import RevisionForm from '@/components/RevisionForm';
-import { Loader2, Palette, Info, CreditCard, Download, ExternalLink, Copy, Zap, Upload, Info as ShieldAlert } from 'lucide-react';
+import { Loader2, Palette, Info, CreditCard, Download, ExternalLink, Copy, Zap, Upload, Clock, Info as ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function ClientPortal({ params }) {

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Sparkles } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CreateProject() {
@@ -141,7 +141,20 @@ export default function CreateProject() {
                   </button>
                 </div>
                 {formData.concepts.map((concept, index) => (
-                  <div key={index} className="p-4 bg-muted/20 border border-muted rounded-xl space-y-3">
+                  <div key={index} className="p-4 bg-muted/20 border border-muted rounded-xl space-y-3 relative group">
+                    {formData.concepts.length > 1 && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const newConcepts = formData.concepts.filter((_, i) => i !== index);
+                          setFormData({...formData, concepts: newConcepts});
+                        }}
+                        className="absolute -top-2 -right-2 p-2 bg-red-600 text-white rounded-full lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-700 z-10"
+                        title="Remove Concept"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    )}
                     <input 
                       required
                       placeholder="Concept Title (e.g. Traditional Sitting Pose)"
