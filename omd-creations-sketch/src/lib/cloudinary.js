@@ -7,51 +7,33 @@ cloudinary.config({
 });
 
 /**
- * Uploads an image to Cloudinary and returns the HD URL and a watermarked preview URL.
+ * Uploads both HD and Protected Preview versions of a sketch.
  * 
- * @param {string} fileUri - The file path or base64 data to upload.
- * @param {Object} watermarkData - Data for the watermark (artistName, mandalName, year).
+ * @param {string} hdFileUri - The original HD image (base64/path).
+ * @param {Buffer} previewBuffer - The processed preview image buffer.
  * @returns {Promise<{hdUrl: string, previewUrl: string}>}
  */
-export async function uploadSketch(fileUri, { artistName, mandalName, year }) {
-  // Upload HD version
-  const hdResult = await cloudinary.uploader.upload(fileUri, {
-    folder: 'sketches/hd',
+export async function uploadProjectSketch(hdFileUri, previewBuffer) {
+  // 1. Upload HD version
+  const hdResult = await cloudinary.uploader.upload(hdFileUri, {
+    folder: 'artist-portal/sketches/hd',
   });
 
-  // Create preview version with watermark and grid
-  // Cloudinary transformations:
-  // - w_1000: set width to 1000px
-  // - q_auto: automatic quality
-  // - f_auto: automatic format
-  // - overlay (watermark text): l_text:arial_40_bold:Text,g_center,o_30
-  // - overlay (grid): This is harder with just text, but we can use multiple text overlays or a predefined image overlay.
-  // For this prototype, we'll use a strong text watermark.
-
-  const watermarkText = encodeURIComponent(`${artistName} | ${mandalName} | ${year}`);
-  
-  // Construct the preview URL manually or using the helper
-  // We want: low res, watermark overlay, maybe some color adjustments to make it look "preview-y"
-  const previewUrl = cloudinary.url(hdResult.public_id, {
-    width: 1000,
-    crop: 'scale',
-    quality: 'auto',
-    fetch_format: 'auto',
-    overlay: {
-      font_family: 'Arial',
-      font_size: 40,
-      font_weight: 'bold',
-      text: `${artistName} - ${mandalName} (${year})`,
-    },
-    gravity: 'center',
-    opacity: 30,
-    angle: 45,
-    effect: 'sepia:50', // Just to make it look distinct from HD
+  // 2. Upload Preview version using stream (since it's a buffer)
+  const previewResult = await new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: 'artist-portal/sketches/previews' },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    uploadStream.end(previewBuffer);
   });
 
   return {
     hdUrl: hdResult.secure_url,
-    previewUrl: previewUrl,
+    previewUrl: previewResult.secure_url,
   };
 }
 

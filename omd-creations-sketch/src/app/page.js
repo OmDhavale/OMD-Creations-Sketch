@@ -8,7 +8,7 @@ export default function Home() {
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/20 rounded-full text-accent text-sm font-bold mb-6">
             <Sparkles size={16} />
-            <span>Premium Mural Sketch Portal</span>
+            <span>Premium Concept Sketch Portal</span>
           </div>
           <h1 className="text-4xl md:text-8xl font-black mb-6 tracking-tighter text-white">
             OMD <span className="text-accent">CREATIONS</span>

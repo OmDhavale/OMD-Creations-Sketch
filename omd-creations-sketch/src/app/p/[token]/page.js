@@ -57,7 +57,7 @@ export default function ClientPortal({ params }) {
     </div>
   );
 
-  const { project, sketches, payments, artist } = data;
+  const { project, sketches, payments, revisions, artist } = data;
   const isCompleted = project.status === 'completed';
 
   return (
@@ -72,6 +72,19 @@ export default function ClientPortal({ params }) {
       </header>
 
       <main className="max-w-xl mx-auto p-4 space-y-8 mt-6">
+        {/* Rejection Alert */}
+        {payments.some(p => p.status === 'rejected') && (
+            <section className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex gap-3 items-start animate-bounce-short">
+                <ShieldAlert className="text-red-500 flex-shrink-0" size={18} />
+                <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">Payment Rejected</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        Your submitted payment was rejected by the artist. Please check the history below and re-submit or contact the artist.
+                    </p>
+                </div>
+            </section>
+        )}
+
         {/* Psychological Trigger / Legal Notice */}
         <section className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex gap-3 items-start backdrop-blur-sm">
             <Info className="text-accent flex-shrink-0" size={18} />
@@ -211,7 +224,9 @@ export default function ClientPortal({ params }) {
 
                     <div className="py-5 px-6 bg-background rounded-2xl border border-muted flex flex-col items-center gap-2 shadow-inner">
                         <span className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em]">Balance Due</span>
-                        <span className="text-4xl font-black text-white">₹{project.totalAmount - project.advanceAmount}</span>
+                        <span className="text-4xl font-black text-white">
+                            ₹{project.advanceWaived ? project.totalAmount : (project.totalAmount - project.advanceAmount)}
+                        </span>
                     </div>
 
                     <div className="space-y-4 pt-4">
@@ -262,22 +277,44 @@ export default function ClientPortal({ params }) {
             </section>
         )}
 
+        {/* Balance Due calculation adjustment */}
+        {project.status === 'awaiting_final_payment' && (
+            <div className="hidden">
+                {/* Visual balance calculation is already in the final payment section below */}
+            </div>
+        )}
+
         {/* Sketches */}
         <section className="space-y-4">
             <h3 className="font-bold uppercase tracking-widest text-xs ml-2 text-muted-foreground flex items-center gap-2">
                 <Palette size={14} className="text-accent" />
                 Draft & Sketches
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {sketches.map(s => (
-                    <SketchPreview key={s._id} sketch={s} isCompleted={isCompleted} />
-                ))}
-                {sketches.length === 0 && (
-                    <div className="col-span-2 py-12 text-center bg-card border border-muted rounded-2xl border-dashed">
-                        <p className="text-sm text-muted-foreground italic">Sketches will appear here shortly.</p>
+            
+            {(project.status === 'awaiting_advance' && !project.advanceWaived) ? (
+                <div className="bg-card border border-muted border-dashed rounded-3xl p-12 text-center space-y-4 shadow-xl">
+                    <div className="inline-flex p-4 bg-muted/20 rounded-full text-muted-foreground">
+                        <Palette size={32} className="opacity-20" />
                     </div>
-                )}
-            </div>
+                    <div className="space-y-1">
+                        <h4 className="font-bold text-white">Sketches Locked</h4>
+                        <p className="text-xs text-muted-foreground leading-relaxed px-6">
+                            Drafts and sketches will be unlocked once the advance payment is confirmed.
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {sketches.map(s => (
+                        <SketchPreview key={s._id} sketch={s} isCompleted={isCompleted} />
+                    ))}
+                    {sketches.length === 0 && (
+                        <div className="col-span-2 py-12 text-center bg-card border border-muted rounded-2xl border-dashed">
+                            <p className="text-sm text-muted-foreground italic">Sketches will appear here shortly.</p>
+                        </div>
+                    )}
+                </div>
+            )}
         </section>
 
         {/* Revision Requests (Only if in preview mode) */}
@@ -287,6 +324,8 @@ export default function ClientPortal({ params }) {
                 revisionsUsed={project.revisionsUsed} 
                 revisionLimit={project.revisionLimit} 
                 onSubmitted={fetchData} 
+                artist={artist}
+                revisions={revisions}
             />
         )}
 
@@ -308,14 +347,17 @@ export default function ClientPortal({ params }) {
                                 )}>
                                     <CreditCard size={16} />
                                 </div>
-                                <span className="text-xs font-bold uppercase tracking-wider">{p.type} Payment</span>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-bold uppercase tracking-wider">{p.type} Payment</span>
+                                    <span className="text-[8px] text-muted-foreground uppercase font-medium">{p.paymentMode || 'upi'} mode</span>
+                                </div>
                             </div>
                             <span className={cn(
                                 "text-[10px] px-2 py-0.5 rounded-full border font-black uppercase tracking-tighter",
                                 p.status === 'approved' ? 'border-green-600/50 text-green-500' : 
-                                p.status === 'rejected' ? 'border-red-600/50 text-red-500' : 'border-yellow-600/50 text-yellow-500'
+                                p.status === 'rejected' ? 'border-red-600/50 text-red-500 font-bold bg-red-500/5' : 'border-yellow-600/50 text-yellow-500'
                             )}>
-                                {p.status}
+                                {p.status === 'rejected' ? 'REJECTED' : p.status}
                             </span>
                         </div>
                     ))}

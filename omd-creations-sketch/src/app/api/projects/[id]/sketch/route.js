@@ -3,7 +3,8 @@ import dbConnect from '@/lib/mongodb';
 import Project from '@/models/Project';
 import Sketch from '@/models/Sketch';
 import Artist from '@/models/Artist';
-import { uploadSketch } from '@/lib/cloudinary';
+import { uploadProjectSketch } from '@/lib/cloudinary';
+import { generateProtectedPreview } from '@/lib/imageProcessor';
 
 export async function POST(req, { params }) {
   await dbConnect();
@@ -22,17 +23,23 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    // Convert file to base64 for Cloudinary
+    // Convert file to buffer for processing
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    
+    // Prepare for Cloudinary (HD version needs base64 or path)
     const fileUri = `data:${file.type};base64,${buffer.toString('base64')}`;
 
+    // 1. Generate the protected preview buffer
     const artist = project.artistId;
-    const { hdUrl, previewUrl } = await uploadSketch(fileUri, {
+    const previewBuffer = await generateProtectedPreview(buffer, {
       artistName: artist.name,
       mandalName: project.mandalName,
       year: project.year,
     });
+
+    // 2. Upload both to Cloudinary
+    const { hdUrl, previewUrl } = await uploadProjectSketch(fileUri, previewBuffer);
 
     const sketch = await Sketch.create({
       projectId: id,

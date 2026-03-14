@@ -20,6 +20,7 @@ const ProjectSchema = new mongoose.Schema({
   }],
   totalAmount: { type: Number, default: 0 },
   advanceAmount: { type: Number, default: 0 },
+  advanceWaived: { type: Boolean, default: false },
   revisionLimit: { type: Number, default: 3 },
   revisionsUsed: { type: Number, default: 0 },
   projectToken: { type: String, required: true, unique: true },

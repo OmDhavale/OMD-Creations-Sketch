@@ -10,7 +10,14 @@ const ProjectCard = ({ project }) => {
         <h3 className="text-xl font-bold text-white group-hover:text-accent transition-colors">
           {project.mandalName}
         </h3>
-        <StatusBadge status={project.status} />
+        <div className="flex flex-col gap-1 items-end">
+          <StatusBadge status={project.status} />
+          {project.concepts && project.concepts.some(c => c.selected) && (
+            <span className="text-[9px] bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider animate-pulse">
+              Concept Selected
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2 text-sm text-muted-foreground mb-6">

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import dbConnect from '@/lib/mongodb';
 import Project from '@/models/Project';
 import Payment from '@/models/Payment';
@@ -7,43 +8,68 @@ import { uploadPaymentScreenshot } from '@/lib/cloudinary';
 export async function POST(req) {
   await dbConnect();
 
+  let projectId, type, paymentMode;
+
   try {
     const formData = await req.formData();
-    const projectId = formData.get('projectId');
-    const type = formData.get('type');
+    projectId = formData.get('projectId');
+    type = formData.get('type');
+    paymentMode = formData.get('paymentMode') || 'upi';
     const file = formData.get('file');
 
-    if (!projectId || !file || !type) {
+    if (!projectId || projectId === 'undefined' || projectId === 'null') {
+      return NextResponse.json({ error: 'Invalid project ID provided' }, { status: 400 });
+    }
+
+    if (!projectId || !type) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const project = await Project.findById(projectId);
     if (!project) {
+      console.error("Project not found:", projectId);
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const fileUri = `data:${file.type};base64,${buffer.toString('base64')}`;
+    console.log("Processing payment submission:", { projectId, type, paymentMode, hasFile: !!file });
 
-    const screenshotUrl = await uploadPaymentScreenshot(fileUri);
+    let screenshotUrl = "";
+    if (paymentMode === 'upi') {
+      if (!file) {
+        return NextResponse.json({ error: 'Screenshot required for UPI payment' }, { status: 400 });
+      }
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const fileUri = `data:${file.type};base64,${buffer.toString('base64')}`;
+      screenshotUrl = await uploadPaymentScreenshot(fileUri);
+    }
 
-    const payment = await Payment.create({
-      projectId,
+    const paymentData = {
+      projectId: project._id,
       type,
+      paymentMode,
       screenshotUrl,
       status: 'pending',
-    });
+    };
 
-    // Update project status based on payment type
-    if (type === 'advance' && project.status === 'awaiting_advance') {
-      // Keep in awaiting_advance until approved? Or move to sketch?
-      // For now, leave status change to admin approval.
-    }
+    console.log("Attempting to create payment record:", paymentData);
+    const payment = await Payment.create(paymentData);
+    console.log("Payment record created successfully:", payment._id);
 
     return NextResponse.json(payment, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Payment POST Error detail:", {
+      message: error.message,
+      stack: error.stack,
+      projectId,
+      type,
+      paymentMode
+    });
+    return NextResponse.json({ 
+      error: error.message,
+      details: "Error in POST /api/payment",
+      context: { type, paymentMode, projectId }
+    }, { status: 500 });
   }
 }
 
@@ -72,6 +98,11 @@ export async function PATCH(req) {
 
     return NextResponse.json(payment);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Payment PATCH Error:", error);
+    return NextResponse.json({ 
+      error: error.message,
+      stack: error.stack,
+      details: "Error in PATCH /api/payment"
+    }, { status: 500 });
   }
 }

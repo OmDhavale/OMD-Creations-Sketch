@@ -5,7 +5,7 @@ import Project from '@/models/Project';
 export async function POST(req, { params }) {
   await dbConnect();
   try {
-    const { token } = params;
+    const { token } = await params;
     const { conceptId } = await req.json();
 
     const project = await Project.findOne({ projectToken: token });

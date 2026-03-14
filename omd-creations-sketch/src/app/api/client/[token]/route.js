@@ -4,6 +4,7 @@ import Project from '@/models/Project';
 import Sketch from '@/models/Sketch';
 import Payment from '@/models/Payment';
 import Artist from '@/models/Artist';
+import RevisionRequest from '@/models/RevisionRequest';
 
 export async function GET(req, { params }) {
   await dbConnect();
@@ -17,6 +18,7 @@ export async function GET(req, { params }) {
 
     const sketches = await Sketch.find({ projectId: project._id }).sort({ uploadedAt: -1 });
     const payments = await Payment.find({ projectId: project._id }).sort({ uploadedAt: -1 });
+    const revisions = await RevisionRequest.find({ projectId: project._id }).sort({ createdAt: -1 });
 
     // In a real app, we would strip data from project based on status
     // e.g. HD URL is hidden until status is completed.
@@ -26,7 +28,7 @@ export async function GET(req, { params }) {
     const clientSketches = sketches.map(s => ({
       _id: s._id,
       previewImageUrl: s.previewImageUrl,
-      // Only include HD if completed
+      // Strictly restrict HD access to completed status
       hdImageUrl: project.status === 'completed' ? s.hdImageUrl : null,
       uploadedAt: s.uploadedAt,
     }));
@@ -35,6 +37,7 @@ export async function GET(req, { params }) {
       project,
       sketches: clientSketches,
       payments,
+      revisions,
       artist: {
         name: project.artistId.name,
         studioName: project.artistId.studioName,

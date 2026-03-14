@@ -36,9 +36,17 @@ export async function PATCH(req, { params }) {
   const body = await req.json();
 
   try {
+    const existingProject = await Project.findById(id);
+    if (existingProject.status === 'completed' && body.status && body.status !== 'completed') {
+      // Smart Lock: Only block if an approved final payment exists
+      const hasApprovedFinal = await Payment.findOne({ projectId: id, type: 'final', status: 'approved' });
+      if (hasApprovedFinal) {
+        return NextResponse.json({ error: 'Cannot revert status while an approved final payment exists' }, { status: 403 });
+      }
+    }
+
     const project = await Project.findByIdAndUpdate(id, body, { new: true });
     return NextResponse.json(project);
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
