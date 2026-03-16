@@ -11,17 +11,18 @@ import sharp from 'sharp';
 export async function generateProtectedPreview(inputBuffer, { artistName, mandalName, year }) {
   const image = sharp(inputBuffer);
   const metadata = await image.metadata();
-  
+
   const width = metadata.width || 1000;
   const height = metadata.height || 1000;
 
   // Step 1: Resize to 1000px width (maintaining aspect ratio)
   const previewWidth = 1000;
   const previewHeight = Math.round((height / width) * previewWidth) || 1000;
-  
+
   // We'll create SVG overlays for grid, watermark, and interference
   const safeArtist = (artistName || 'OMD CREATIONS').toUpperCase();
   const safeMandal = (mandalName || 'PROJECT').toUpperCase();
+  const safeYear = year || new Date().getFullYear();
 
   const svgOverlay = `
     <svg width="${previewWidth}" height="${previewHeight}" viewBox="0 0 ${previewWidth} ${previewHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color: transparent;">
@@ -33,14 +34,25 @@ export async function generateProtectedPreview(inputBuffer, { artistName, mandal
           <line x1="0" y1="0" x2="0" y2="40" stroke="black" stroke-width="1" stroke-opacity="0.05" />
         </pattern>
         <pattern id="watermark-pattern" width="400" height="200" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)">
-          <!-- High Contrast Background Layer -->
-          <text x="200" y="80" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="white" fill-opacity="0.3" stroke="white" stroke-width="3" stroke-opacity="0.3">${safeArtist}</text>
-          <text x="200" y="120" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="18" fill="white" fill-opacity="0.3" stroke="white" stroke-width="2" stroke-opacity="0.3">PROJECT: ${safeMandal}</text>
+          <!-- Protective Backing Rectangles (Guaranteed protection even if text rendering fails) -->
+          <rect x="50" y="55" width="300" height="40" rx="4" fill="white" fill-opacity="0.1" />
+          <rect x="100" y="105" width="200" height="25" rx="4" fill="white" fill-opacity="0.1" />
           
-          <!-- Bold Foreground Layer -->
-          <text x="200" y="80" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="32" fill="black" fill-opacity="0.6">${safeArtist}</text>
-          <text x="200" y="120" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="18" fill="black" fill-opacity="0.5">PROJECT: ${safeMandal}</text>
-          <text x="200" y="150" text-anchor="middle" font-family="sans-serif" font-size="14" fill="black" fill-opacity="0.35">© ${year} • PREVIEW ONLY</text>
+          <!-- Aggressive High-Opacity Text (System Font Only) -->
+          <text 
+            x="200" y="85" text-anchor="middle" font-weight="900" font-size="32" 
+            fill="black" fill-opacity="0.5" stroke="white" stroke-width="1.5" stroke-opacity="0.4"
+          >${safeArtist}</text>
+          
+          <text 
+            x="200" y="125" text-anchor="middle" font-weight="bold" font-size="18" 
+            fill="black" fill-opacity="0.75" stroke="white" stroke-width="1" stroke-opacity="0.3"
+          >PROJECT: ${safeMandal}</text>
+          
+          <text 
+            x="200" y="155" text-anchor="middle" font-size="14" 
+            fill="black" fill-opacity="0.5"
+          >© ${safeYear} • PREVIEW ONLY</text>
         </pattern>
       </defs>
 
