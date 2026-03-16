@@ -35,13 +35,16 @@ export async function generateProtectedPreview(inputBuffer, { artistName, mandal
             x="200" 
             y="100" 
             text-anchor="middle" 
-            font-family="Arial, sans-serif" 
+            font-family="sans-serif" 
             font-weight="bold" 
             fill="black"
+            stroke="white"
+            stroke-width="0.5"
+            stroke-opacity="0.1"
           >
-            <tspan x="200" dy="-10" font-size="32" fill-opacity="0.1">${artistName.toUpperCase()}</tspan>
-            <tspan x="200" dy="40" font-size="18" fill-opacity="0.08">PROJECT: ${mandalName.toUpperCase()}</tspan>
-            <tspan x="200" dy="30" font-size="14" fill-opacity="0.05">© ${year} • PREVIEW ONLY</tspan>
+            <tspan x="200" dy="-10" font-size="32" fill-opacity="0.2">${artistName.toUpperCase()}</tspan>
+            <tspan x="200" dy="40" font-size="18" fill-opacity="0.15">PROJECT: ${mandalName.toUpperCase()}</tspan>
+            <tspan x="200" dy="30" font-size="14" fill-opacity="0.1">© ${year} • PREVIEW ONLY</tspan>
           </text>
         </pattern>
       </defs>
