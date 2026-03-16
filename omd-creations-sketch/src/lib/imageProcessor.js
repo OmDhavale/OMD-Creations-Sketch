@@ -39,9 +39,9 @@ export async function generateProtectedPreview(inputBuffer, { artistName, mandal
   let yearPath = '';
 
   if (textToSVG) {
-     artistPath = textToSVG.getD(safeArtist, { x: 200, y: 85, fontSize: 32, anchor: 'center middle' });
-     mandalPath = textToSVG.getD(`PROJECT: ${safeMandal}`, { x: 200, y: 125, fontSize: 18, anchor: 'center middle' });
-     yearPath = textToSVG.getD(`© ${safeYear} • PREVIEW ONLY`, { x: 200, y: 155, fontSize: 14, anchor: 'center middle' });
+    artistPath = textToSVG.getD(safeArtist, { x: 200, y: 85, fontSize: 32, anchor: 'center middle' });
+    mandalPath = textToSVG.getD(`PROJECT: ${safeMandal}`, { x: 200, y: 125, fontSize: 18, anchor: 'center middle' });
+    yearPath = textToSVG.getD(`© ${safeYear} • PREVIEW ONLY`, { x: 200, y: 155, fontSize: 14, anchor: 'center middle' });
   }
 
   const svgOverlay = `
@@ -59,9 +59,9 @@ export async function generateProtectedPreview(inputBuffer, { artistName, mandal
           <rect x="100" y="105" width="200" height="25" rx="4" fill="white" fill-opacity="0.3" />
           
           <!-- Deep-baked Font Paths (Guaranteed to render) -->
-          <path d="${artistPath}" fill="black" fill-opacity="0.7" stroke="white" stroke-width="1" stroke-opacity="0.5" />
-          <path d="${mandalPath}" fill="black" fill-opacity="0.7" stroke="white" stroke-width="0.5" stroke-opacity="0.5" />
-          <path d="${yearPath}" fill="black" fill-opacity="0.5" />
+          <path d="${artistPath}" fill="black" fill-opacity="0.4" stroke="white" stroke-width="1" stroke-opacity="0.5" />
+          <path d="${mandalPath}" fill="black" fill-opacity="0.4" stroke="white" stroke-width="0.5" stroke-opacity="0.5" />
+          <path d="${yearPath}" fill="black" fill-opacity="0.3" />
         </pattern>
       </defs>
 
