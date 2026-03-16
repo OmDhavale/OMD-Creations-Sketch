@@ -26,7 +26,7 @@ export default function AdminDashboard() {
   return (
     <div className="flex bg-background min-h-screen text-foreground">
       <Sidebar />
-      <main className="lg:ml-64 flex-1 p-4 md:p-10 pt-20 lg:pt-10">
+      <main className="lg:ml-64 flex-1 p-4 md:p-10 pt-24 lg:pt-10">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Artist Dashboard</h2>

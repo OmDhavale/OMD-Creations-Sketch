@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, LogOut, Menu, X, ImagePlay } from 'lucide-react';
 import { cn } from '@/lib/utils'; // I'll make sure this helper exists with a minor fix if needed
 
 const Sidebar = () => {
@@ -12,6 +12,7 @@ const Sidebar = () => {
     const navItems = [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
         { label: 'Create Project', icon: PlusCircle, href: '/admin/create' },
+        { label: 'My Sketches', icon: ImagePlay, href: '/admin/gallery' },
     ];
 
     const toggleSidebar = () => setIsOpen(!isOpen);

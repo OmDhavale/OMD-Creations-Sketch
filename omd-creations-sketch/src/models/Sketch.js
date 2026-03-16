@@ -6,6 +6,7 @@ const SketchSchema = new mongoose.Schema({
   previewPublicId: { type: String },
   hdImageUrl: { type: String, required: true },
   hdPublicId: { type: String },
+  isPublic: { type: Boolean, default: true },
   uploadedAt: { type: Date, default: Date.now },
 });
 

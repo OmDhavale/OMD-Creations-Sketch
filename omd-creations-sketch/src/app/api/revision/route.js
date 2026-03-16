@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Project from '@/models/Project';
 import RevisionRequest from '@/models/RevisionRequest';
+import { uploadPaymentScreenshot } from '@/lib/cloudinary';
 
 export async function POST(req) {
   await dbConnect();
@@ -49,7 +50,7 @@ export async function POST(req) {
 export async function PATCH(req) {
   await dbConnect();
   try {
-    const { id, status, paymentMode, screenshotUrl } = await req.json();
+    const { id, status, paymentMode, screenshotB64 } = await req.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Revision ID is required' }, { status: 400 });
@@ -70,7 +71,11 @@ export async function PATCH(req) {
     // Mandal submmitting payment
     if (paymentMode) {
       revision.paymentMode = paymentMode;
-      revision.screenshotUrl = screenshotUrl;
+
+      if (screenshotB64) {
+          revision.screenshotUrl = await uploadPaymentScreenshot(screenshotB64);
+      }
+      
       revision.paymentStatus = 'pending_approval';
       await revision.save();
       return NextResponse.json(revision);

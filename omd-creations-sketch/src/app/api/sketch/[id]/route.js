@@ -29,3 +29,21 @@ export async function DELETE(req, { params }) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function PATCH(req, { params }) {
+  await dbConnect();
+  const { id } = await params;
+
+  try {
+    const { isPublic } = await req.json();
+    const sketch = await Sketch.findByIdAndUpdate(id, { isPublic }, { new: true });
+    
+    if (!sketch) {
+      return NextResponse.json({ error: 'Sketch not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Visibility updated', sketch });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

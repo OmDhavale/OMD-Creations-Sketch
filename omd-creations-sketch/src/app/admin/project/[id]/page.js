@@ -126,7 +126,7 @@ export default function ProjectDetail({ params }) {
     return (
         <div className="flex bg-background min-h-screen">
             <Sidebar />
-            <main className="lg:ml-64 flex-1 p-4 md:p-10 pt-20 lg:pt-10">
+            <main className="lg:ml-64 flex-1 p-4 md:p-10 pt-24 lg:pt-10">
                 <div className="flex flex-col lg:flex-row justify-between items-start mb-10 gap-6">
                     <div className="w-full">
                         <div className="flex flex-wrap items-center gap-4 mb-2">

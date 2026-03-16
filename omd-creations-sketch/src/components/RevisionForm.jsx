@@ -84,7 +84,7 @@ const RevisionForm = ({ projectId, revisionsUsed: staticUsed, revisionLimit, onS
               body: JSON.stringify({
                   id: revToPay._id,
                   paymentMode,
-                  screenshotUrl
+                  screenshotB64: screenshotUrl // reusing this state name but passing it as B64
               })
           });
           if (res.ok) {
@@ -126,20 +126,20 @@ const RevisionForm = ({ projectId, revisionsUsed: staticUsed, revisionLimit, onS
     if (!file) return;
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'omd_creations');
-
+    
     try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      setScreenshotUrl(data.secure_url);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setScreenshotUrl(reader.result); // This is now a Base64 data URL
+        setUploading(false);
+      };
+      reader.onerror = () => {
+        console.error("Failed to read file");
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
       console.error(err);
-    } finally {
       setUploading(false);
     }
   };
@@ -198,125 +198,97 @@ const RevisionForm = ({ projectId, revisionsUsed: staticUsed, revisionLimit, onS
 
       return (
         <section className="animate-in fade-in slide-in-from-bottom-4 relative">
-            <div className="bg-card border border-muted rounded-3xl p-6 text-center space-y-6 border-t-4 border-t-accent shadow-xl relative overflow-hidden group/card">
-                <div className="absolute -top-10 -right-10 bg-accent/10 w-32 h-32 rounded-full blur-3xl opacity-50" />
+            <div className="bg-[#151515] border border-white/5 rounded-3xl p-6 text-center space-y-6 shadow-xl relative overflow-hidden group/card">
                 
                 <button 
                   onClick={handleCancelRevision}
                   disabled={loading}
-                  className="absolute top-4 right-4 p-2 bg-muted/20 hover:bg-red-500/20 text-muted-foreground hover:text-red-500 rounded-full transition-all opacity-70 hover:opacity-100 disabled:opacity-30 z-10"
+                  className="absolute top-5 right-5 p-2 bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white rounded-full transition-all"
                   aria-label="Cancel Revision Request"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
 
-                <div className="inline-flex p-5 bg-accent/20 rounded-full text-accent shadow-inner">
-                    <CreditCard size={48} />
+                <div className="inline-flex p-5 bg-accent/10 rounded-full text-accent shadow-inner border border-accent/20 mt-2">
+                    <CreditCard size={40} />
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-white tracking-tight">Revision Payment</h2>
+                    <h2 className="text-2xl font-black text-white tracking-tight">Revision Payment</h2>
                     <p className="text-sm text-muted-foreground uppercase tracking-widest font-black text-[10px]">
                         {selectedType?.label} Revision • {activeRevision.message.substring(0, 30)}...
                     </p>
                 </div>
 
-                <div className="py-5 px-6 bg-background rounded-2xl border border-muted flex flex-col items-center gap-2 shadow-inner">
+                <div className="py-6 px-6 bg-[#0f0f0f] rounded-2xl border border-white/5 flex flex-col items-center gap-2 shadow-inner">
                     <span className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em]">Amount Due</span>
-                    <span className="text-4xl font-black text-white">₹{activeRevision.amount}</span>
+                    <span className="text-5xl font-black text-white">₹{activeRevision.amount}</span>
                 </div>
 
-                <div className="space-y-4 pt-4">
-                    <div className="p-4 bg-muted/20 rounded-2xl border border-muted flex justify-between items-center group active:scale-95 transition-transform">
-                        <div className="text-left">
+                <div className="space-y-6 pt-2">
+                    <div className="p-5 bg-[#1a1a1a] rounded-2xl border border-white/5 flex justify-between items-center group active:scale-95 transition-transform text-left">
+                        <div>
                             <p className="text-[10px] uppercase text-muted-foreground font-black tracking-widest">Studio UPI ID</p>
-                            <p className="text-lg font-mono text-white select-all">{artist?.upiId}</p>
+                            <p className="text-lg font-mono text-white select-all mt-1">{artist?.upiId}</p>
                         </div>
                         <button 
                             onClick={() => {
                                 navigator.clipboard.writeText(artist?.upiId);
                                 alert('UPI ID Copied!');
                             }}
-                            className="p-4 bg-accent/10 hover:bg-accent text-accent hover:text-accent-foreground rounded-2xl transition-all shadow-lg active:scale-90"
+                            className="p-4 bg-accent/10 hover:bg-accent text-accent hover:text-black rounded-2xl transition-all shadow-lg active:scale-90"
                         >
-                            <Copy size={24} />
+                            <Copy size={20} />
                         </button>
                     </div>
 
-                    {!showUpload ? (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-3 gap-2">
-                                {['upi', 'cash', 'cheque'].map(m => (
-                                    <button
-                                        key={m}
-                                        onClick={() => setPaymentMode(m)}
-                                        className={cn(
-                                            "py-3 rounded-xl border text-[9px] font-black uppercase tracking-tighter transition-all",
-                                            paymentMode === m ? 'bg-accent/10 border-accent text-accent' : 'bg-background border-muted text-muted-foreground'
-                                        )}
-                                    >
-                                        {m}
-                                    </button>
-                                ))}
-                            </div>
-                            <button 
-                                onClick={() => setShowUpload(true)}
-                                className="w-full py-4 bg-accent text-accent-foreground font-black rounded-2xl shadow-xl shadow-accent/20 hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-2"
+                    <div className="bg-[#1a1a1a] border border-accent/30 rounded-2xl p-5 animate-in fade-in zoom-in-95 duration-300 space-y-4">
+                        <h3 className="font-bold text-[11px] uppercase tracking-widest text-accent flex items-center gap-2">
+                            <Upload size={14} />
+                            Confirm Payment
+                        </h3>
+                        
+                        <div className="space-y-3">
+                            <label className="flex flex-col items-center justify-center gap-3 p-8 border border-dashed border-muted-foreground/30 rounded-2xl hover:border-accent/40 cursor-pointer transition-all bg-black/20 group">
+                                {uploading ? (
+                                    <Loader2 className="animate-spin text-accent" />
+                                ) : screenshotUrl ? (
+                                    <div className="relative group/img">
+                                        <img src={screenshotUrl} className="w-32 h-32 object-cover rounded-xl border border-accent shadow-2xl shadow-accent/30" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity rounded-xl">
+                                            <Upload className="text-white" size={20} />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="p-3 text-accent group-hover:scale-110 transition-transform">
+                                            <Upload size={24} />
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Upload Screenshot</span>
+                                    </>
+                                )}
+                                <input type="file" className="hidden" onChange={handleFileUpload} />
+                            </label>
+                        </div>
+
+                        <div className="flex flex-col gap-4 pt-2">
+                            <button
+                                disabled={loading || uploading || !screenshotUrl}
+                                onClick={handlePaymentSubmit}
+                                className="w-full py-4 bg-accent text-black font-black uppercase tracking-widest text-[11px] rounded-xl shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                             >
-                                [ I HAVE PAID ]
+                                {loading ? 'Processing...' : 'Submit Confirmation'}
+                                <Send size={14} />
+                            </button>
+                            <button 
+                                onClick={handleCancelRevision}
+                                className="text-[10px] text-muted-foreground hover:text-white transition-colors uppercase font-black tracking-widest mt-1"
+                            >
+                                ← Back to instructions
                             </button>
                         </div>
-                    ) : (
-                        <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-300 space-y-4">
-                            <h3 className="font-bold text-sm uppercase tracking-widest text-accent flex items-center gap-2">
-                                <Upload size={16} />
-                                Confirm Payment
-                            </h3>
-                            
-                            {paymentMode === 'upi' && (
-                                <div className="space-y-3">
-                                    <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-muted rounded-2xl hover:border-accent/40 cursor-pointer transition-all bg-muted/5 group">
-                                        {uploading ? (
-                                            <Loader2 className="animate-spin text-accent" />
-                                        ) : screenshotUrl ? (
-                                            <div className="relative group">
-                                                <img src={screenshotUrl} className="w-32 h-32 object-cover rounded-xl border border-accent shadow-2xl shadow-accent/30" />
-                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-xl">
-                                                    <Upload className="text-white" size={20} />
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <div className="p-3 bg-accent/10 rounded-full text-accent group-hover:scale-110 transition-transform">
-                                                    <Upload size={24} />
-                                                </div>
-                                                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Upload Screenshot</span>
-                                            </>
-                                        )}
-                                        <input type="file" className="hidden" onChange={handleFileUpload} />
-                                    </label>
-                                </div>
-                            )}
+                    </div>
 
-                            <div className="flex flex-col gap-3">
-                                <button
-                                    disabled={loading || uploading || (paymentMode === 'upi' && !screenshotUrl)}
-                                    onClick={handlePaymentSubmit}
-                                    className="w-full py-4 bg-accent text-accent-foreground font-black uppercase tracking-widest text-xs rounded-xl shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-                                >
-                                    {loading ? 'Processing...' : 'Submit Confirmation'}
-                                    <Send size={14} />
-                                </button>
-                                <button 
-                                    onClick={() => setShowUpload(false)}
-                                    className="text-[10px] text-muted-foreground hover:text-white transition-colors uppercase font-bold tracking-widest mt-2"
-                                >
-                                    ← Back to instructions
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-2 font-medium pt-2">
+                    <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-2 font-medium pt-2 pb-2">
                         <ShieldAlert size={10} className="text-accent" /> Artist will verify and unlock this revision.
                     </p>
                 </div>
@@ -326,41 +298,41 @@ const RevisionForm = ({ projectId, revisionsUsed: staticUsed, revisionLimit, onS
   }
 
   return (
-    <div className="bg-card border border-muted p-5 rounded-xl space-y-4">
+    <div className="bg-[#151515] border border-white/5 p-6 rounded-2xl space-y-6 shadow-xl">
       <div className="flex justify-between items-center">
-        <h4 className="font-bold text-sm uppercase tracking-wider text-white">
-          {isLimitReached ? 'Purchase Extra Revision' : 'Request Revision'}
+        <h4 className="font-black text-lg uppercase tracking-wider text-white">
+          {isLimitReached ? 'PURCHASE EXTRA REVISION' : 'REQUEST REVISION'}
         </h4>
         <div className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter bg-muted/20 px-2 py-0.5 rounded">
+            <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest bg-white/5 px-2.5 py-1 rounded-md">
                 {revisionsUsed}/{revisionLimit} Free Used
             </span>
         </div>
       </div>
       
       {isLimitReached && (
-          <div className="space-y-3 pt-2">
-              <p className="text-[10px] text-accent font-bold uppercase tracking-widest">Select Revision Type</p>
-              <div className="grid grid-cols-1 gap-2">
+          <div className="space-y-4 pt-2">
+              <p className="text-[11px] text-accent font-black uppercase tracking-widest">Select Revision Type</p>
+              <div className="grid grid-cols-1 gap-3">
                   {revisionTypes.map(t => (
                       <button
                         key={t.id}
                         type="button"
                         onClick={() => setType(t.id)}
-                        className={`text-left p-3 rounded-xl border transition-all ${
+                        className={`text-left p-4 rounded-xl border transition-all ${
                             type === t.id 
-                            ? 'bg-accent/10 border-accent text-accent shadow-lg shadow-accent/5' 
-                            : 'bg-background border-muted hover:border-muted-foreground/30 text-muted-foreground'
+                            ? 'bg-accent/5 border-accent text-accent' 
+                            : 'bg-white/5 border-white/5 hover:border-white/10 text-muted-foreground'
                         }`}
                       >
-                        <div className="flex justify-between items-center mb-1">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold uppercase">{t.label}</span>
-                                <span className="text-[10px] font-black text-accent bg-accent/10 px-1.5 py-0.5 rounded">₹{t.price}</span>
+                        <div className="flex justify-between items-center mb-1.5">
+                            <div className="flex items-center gap-3">
+                                <span className={cn("text-sm font-black uppercase tracking-wide", type === t.id ? 'text-accent' : 'text-white')}>{t.label}</span>
+                                <span className={cn("text-[10px] font-black px-2 py-0.5 rounded", type === t.id ? 'bg-accent text-black' : 'bg-[#222222] text-accent')}>₹{t.price}</span>
                             </div>
-                            {type === t.id && <CheckCircle size={12} />}
+                            {type === t.id && <CheckCircle size={14} className="text-accent" />}
                         </div>
-                        <p className="text-[9px] opacity-70 leading-tight uppercase font-medium tracking-tight">{t.desc}</p>
+                        <p className={cn("text-[10px] uppercase font-bold tracking-widest", type === t.id ? 'text-accent/80' : 'text-muted-foreground')}>{t.desc}</p>
                       </button>
                   ))}
               </div>
@@ -368,10 +340,10 @@ const RevisionForm = ({ projectId, revisionsUsed: staticUsed, revisionLimit, onS
       )}
 
       <form onSubmit={handleInitialSubmit} className="space-y-4">
-        <div className="space-y-2 text-left">
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest ml-1">Notes / Description</p>
+        <div className="space-y-3 text-left">
+            <p className="text-[11px] text-accent font-black uppercase tracking-widest ml-1">Notes / Description</p>
             <textarea
-              className="w-full bg-background border border-muted rounded-xl p-4 text-[13px] text-white focus:outline-none focus:border-accent min-h-[120px] shadow-inner"
+              className="w-full bg-[#111111] border border-white/10 rounded-xl p-4 text-[13px] text-white focus:outline-none focus:border-accent min-h-[120px] shadow-inner resize-none"
               placeholder="Be specific about the changes you need..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -382,7 +354,7 @@ const RevisionForm = ({ projectId, revisionsUsed: staticUsed, revisionLimit, onS
         <button
           type="submit"
           disabled={loading || !message}
-          className="w-full py-4 bg-white hover:bg-white/90 text-black font-black uppercase tracking-widest text-xs rounded-xl disabled:opacity-50 flex items-center justify-center gap-3 transition-all transform active:scale-[0.98] shadow-lg"
+          className="w-full py-4 bg-[#8b8b8b] hover:bg-[#a0a0a0] text-black font-black uppercase tracking-widest text-[11px] rounded-xl disabled:opacity-50 flex items-center justify-center gap-3 transition-all transform active:scale-[0.98]"
         >
           {loading ? 'Sending...' : isLimitReached ? `BUY REVISION AND SEND REQ (₹${revisionTypes.find(t => t.id === type)?.price})` : 'Send Free Request'}
           <Send size={14} />

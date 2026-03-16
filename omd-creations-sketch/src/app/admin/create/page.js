@@ -45,7 +45,7 @@ export default function CreateProject() {
   return (
     <div className="flex bg-background min-h-screen">
       <Sidebar />
-      <main className="lg:ml-64 flex-1 p-4 md:p-10 pt-20 lg:pt-10">
+      <main className="lg:ml-64 flex-1 p-4 md:p-10 pt-24 lg:pt-10">
         <div className="max-w-3xl mx-auto">
           <Link href="/admin/dashboard" className="flex items-center gap-2 text-muted-foreground hover:text-accent mb-6 transition-colors inline-flex text-sm">
             <ArrowLeft size={16} />
