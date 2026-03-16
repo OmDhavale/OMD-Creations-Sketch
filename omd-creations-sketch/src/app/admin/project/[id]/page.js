@@ -224,8 +224,8 @@ export default function ProjectDetail({ params }) {
                                 {sketches.map(s => (
                                     <div key={s._id} className="relative aspect-[3/4] bg-background rounded-lg overflow-hidden border border-muted group">
                                         <img src={s.hdImageUrl} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity" />
+                                        <div className="absolute top-2 right-2 flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-10">
                                             <a href={s.hdImageUrl} target="_blank" className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform shadow-lg flex items-center justify-center" aria-label="View HD">
                                                 <ExternalLink size={14} />
                                             </a>
