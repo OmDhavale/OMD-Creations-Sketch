@@ -1,4 +1,14 @@
 import sharp from 'sharp';
+import TextToSVG from 'text-to-svg';
+import path from 'path';
+
+let textToSVG = null;
+try {
+  const fontPath = path.join(process.cwd(), 'src', 'lib', 'fonts', 'Roboto-Black.ttf');
+  textToSVG = TextToSVG.loadSync(fontPath);
+} catch (e) {
+  console.error('Failed to load font for watermark', e);
+}
 
 /**
  * Generates a protected preview of a sketch using Sharp.
@@ -24,6 +34,16 @@ export async function generateProtectedPreview(inputBuffer, { artistName, mandal
   const safeMandal = (mandalName || 'PROJECT').toUpperCase();
   const safeYear = year || new Date().getFullYear();
 
+  let artistPath = '';
+  let mandalPath = '';
+  let yearPath = '';
+
+  if (textToSVG) {
+     artistPath = textToSVG.getD(safeArtist, { x: 200, y: 85, fontSize: 32, anchor: 'center middle' });
+     mandalPath = textToSVG.getD(`PROJECT: ${safeMandal}`, { x: 200, y: 125, fontSize: 18, anchor: 'center middle' });
+     yearPath = textToSVG.getD(`© ${safeYear} • PREVIEW ONLY`, { x: 200, y: 155, fontSize: 14, anchor: 'center middle' });
+  }
+
   const svgOverlay = `
     <svg width="${previewWidth}" height="${previewHeight}" viewBox="0 0 ${previewWidth} ${previewHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color: transparent;">
       <defs>
@@ -34,25 +54,14 @@ export async function generateProtectedPreview(inputBuffer, { artistName, mandal
           <line x1="0" y1="0" x2="0" y2="40" stroke="black" stroke-width="1" stroke-opacity="0.05" />
         </pattern>
         <pattern id="watermark-pattern" width="400" height="200" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)">
-          <!-- Protective Backing Rectangles (Guaranteed protection even if text rendering fails) -->
-          <rect x="50" y="55" width="300" height="40" rx="4" fill="white" fill-opacity="0.1" />
-          <rect x="100" y="105" width="200" height="25" rx="4" fill="white" fill-opacity="0.1" />
+          <!-- Protective Backing Rectangles -->
+          <rect x="50" y="55" width="300" height="40" rx="4" fill="white" fill-opacity="0.3" />
+          <rect x="100" y="105" width="200" height="25" rx="4" fill="white" fill-opacity="0.3" />
           
-          <!-- Aggressive High-Opacity Text (System Font Only) -->
-          <text 
-            x="200" y="85" text-anchor="middle" font-weight="900" font-size="32" 
-            fill="black" fill-opacity="0.5" stroke="white" stroke-width="1.5" stroke-opacity="0.4"
-          >${safeArtist}</text>
-          
-          <text 
-            x="200" y="125" text-anchor="middle" font-weight="bold" font-size="18" 
-            fill="black" fill-opacity="0.75" stroke="white" stroke-width="1" stroke-opacity="0.3"
-          >PROJECT: ${safeMandal}</text>
-          
-          <text 
-            x="200" y="155" text-anchor="middle" font-size="14" 
-            fill="black" fill-opacity="0.5"
-          >© ${safeYear} • PREVIEW ONLY</text>
+          <!-- Deep-baked Font Paths (Guaranteed to render) -->
+          <path d="${artistPath}" fill="black" fill-opacity="0.7" stroke="white" stroke-width="1" stroke-opacity="0.5" />
+          <path d="${mandalPath}" fill="black" fill-opacity="0.7" stroke="white" stroke-width="0.5" stroke-opacity="0.5" />
+          <path d="${yearPath}" fill="black" fill-opacity="0.5" />
         </pattern>
       </defs>
 
