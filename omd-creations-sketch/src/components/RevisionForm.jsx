@@ -98,6 +98,29 @@ const RevisionForm = ({ projectId, revisionsUsed: staticUsed, revisionLimit, onS
       }
   };
 
+  const handleCancelRevision = async () => {
+      const revToCancel = activeRevision;
+      if (!revToCancel) return;
+      if (!confirm("Are you sure you want to cancel this revision request?")) return;
+      
+      setLoading(true);
+      try {
+          const res = await fetch('/api/revision', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: revToCancel._id })
+          });
+          if (res.ok) {
+              setCreatedPaidRevision(null);
+              if (onSubmitted) await onSubmitted();
+          }
+      } catch (err) {
+          console.error("Cancel failed", err);
+      } finally {
+          setLoading(false);
+      }
+  };
+
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -174,10 +197,19 @@ const RevisionForm = ({ projectId, revisionsUsed: staticUsed, revisionLimit, onS
       const selectedType = revisionTypes.find(t => t.id === activeRevision.type);
 
       return (
-        <section className="animate-in fade-in slide-in-from-bottom-4">
-            <div className="bg-card border border-muted rounded-3xl p-6 text-center space-y-6 border-t-4 border-t-accent shadow-xl relative overflow-hidden">
+        <section className="animate-in fade-in slide-in-from-bottom-4 relative">
+            <div className="bg-card border border-muted rounded-3xl p-6 text-center space-y-6 border-t-4 border-t-accent shadow-xl relative overflow-hidden group/card">
                 <div className="absolute -top-10 -right-10 bg-accent/10 w-32 h-32 rounded-full blur-3xl opacity-50" />
                 
+                <button 
+                  onClick={handleCancelRevision}
+                  disabled={loading}
+                  className="absolute top-4 right-4 p-2 bg-muted/20 hover:bg-red-500/20 text-muted-foreground hover:text-red-500 rounded-full transition-all opacity-70 hover:opacity-100 disabled:opacity-30 z-10"
+                  aria-label="Cancel Revision Request"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+
                 <div className="inline-flex p-5 bg-accent/20 rounded-full text-accent shadow-inner">
                     <CreditCard size={48} />
                 </div>

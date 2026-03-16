@@ -55,7 +55,7 @@ const SketchPreview = ({ sketch, isCompleted }) => {
             className="w-full flex items-center justify-center gap-2 bg-accent text-accent-foreground py-3 rounded-xl text-sm font-bold hover:scale-[1.02] transition-all shadow-lg shadow-accent/20 active:scale-95"
           >
             <Download size={18} />
-            Download HD Sketch
+            Download HD Sketch (Watermark-free)
           </a>
         ) : (
           <button 

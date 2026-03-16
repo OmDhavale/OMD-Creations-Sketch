@@ -81,3 +81,28 @@ export async function PATCH(req) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req) {
+  await dbConnect();
+  try {
+    const { id } = await req.json();
+
+    if (!id) {
+      return NextResponse.json({ error: 'Revision ID is required' }, { status: 400 });
+    }
+
+    const revision = await RevisionRequest.findById(id);
+    if (!revision) {
+      return NextResponse.json({ error: 'Revision not found' }, { status: 404 });
+    }
+
+    if (revision.paymentStatus !== 'pending_payment') {
+      return NextResponse.json({ error: 'Only pending payment revisions can be cancelled' }, { status: 400 });
+    }
+
+    await RevisionRequest.deleteOne({ _id: id });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
