@@ -6,15 +6,31 @@ import { cn } from '@/lib/utils';
 const SketchPreview = ({ sketch, isCompleted }) => {
   return (
     <div className="bg-card border border-muted p-4 rounded-2xl space-y-4 shadow-sm group">
-      <div className="relative overflow-hidden rounded-xl border border-muted/50 bg-background">
+      <div 
+        className="relative overflow-hidden rounded-xl border border-muted/50 bg-background group/image select-none touch-none"
+        onContextMenu={(e) => e.preventDefault()}
+        onDragStart={(e) => e.preventDefault()}
+        style={{
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
+          KhtmlUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          userSelect: 'none',
+        }}
+      >
         <img 
           src={sketch.previewImageUrl || sketch.hdImageUrl} 
-          className="w-full aspect-[3/4] object-cover transition-all duration-700"
+          className="w-full aspect-[3/4] object-cover transition-all duration-700 pointer-events-none"
           alt="Sketch Preview"
+          loading="lazy"
         />
         
+        {/* Protection Overlay */}
+        <div className="absolute inset-0 z-10 bg-transparent" />
+        
         {!isCompleted && (
-          <div className="absolute bottom-3 right-3 pointer-events-none">
+          <div className="absolute bottom-3 right-3 pointer-events-none z-20">
             <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 shadow-2xl">
               <span className="text-[9px] text-white/90 font-bold uppercase tracking-widest flex items-center gap-2">
                 <Lock size={10} className="text-accent" />
@@ -25,7 +41,7 @@ const SketchPreview = ({ sketch, isCompleted }) => {
         )}
         
         {/* Watermark badge */}
-        <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 flex items-center gap-1.5 shadow-xl">
+        <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 flex items-center gap-1.5 shadow-xl z-20">
           <ShieldCheck size={12} className="text-accent" />
           <span className="text-[8px] text-white font-black uppercase tracking-tighter">Studio Protected</span>
         </div>

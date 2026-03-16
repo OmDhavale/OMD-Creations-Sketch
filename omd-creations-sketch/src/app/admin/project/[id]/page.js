@@ -4,7 +4,7 @@ import Sidebar from '@/components/Sidebar';
 import StatusBadge from '@/components/StatusBadge';
 import {
     Copy, Check, ExternalLink, Image as ImageIcon,
-    MessageSquare, CreditCard, ChevronRight, Loader2, Upload, Palette, Info
+    MessageSquare, CreditCard, ChevronRight, Loader2, Upload, Palette, Info, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ export default function ProjectDetail({ params }) {
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [deletingSketch, setDeletingSketch] = useState(null);
     const [selectedImage, setSelectedImage] = useState(null);
 
     const fetchData = async () => {
@@ -68,6 +69,28 @@ export default function ProjectDetail({ params }) {
             console.error(err);
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handleDeleteSketch = async (sketchId) => {
+        if (!confirm('Are you sure you want to delete this sketch? This cannot be undone.')) return;
+
+        setDeletingSketch(sketchId);
+        try {
+            const res = await fetch(`/api/sketch/${sketchId}`, {
+                method: 'DELETE',
+            });
+            if (res.ok) {
+                fetchData();
+            } else {
+                const err = await res.json();
+                alert(err.error || 'Failed to delete sketch');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('An error occurred while deleting the sketch');
+        } finally {
+            setDeletingSketch(null);
         }
     };
 
@@ -201,11 +224,19 @@ export default function ProjectDetail({ params }) {
                                 {sketches.map(s => (
                                     <div key={s._id} className="relative aspect-[3/4] bg-background rounded-lg overflow-hidden border border-muted group">
                                         <img src={s.hdImageUrl} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                             <a href={s.hdImageUrl} target="_blank" className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform shadow-lg flex items-center justify-center" aria-label="View HD">
-                                                <ExternalLink size={16} />
+                                                <ExternalLink size={14} />
                                             </a>
+                                            <button 
+                                                onClick={() => handleDeleteSketch(s._id)}
+                                                disabled={deletingSketch === s._id}
+                                                className="p-2 bg-red-600 text-white rounded-full hover:scale-110 transition-transform shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                                aria-label="Delete Sketch"
+                                            >
+                                                {deletingSketch === s._id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                            </button>
                                         </div>
                                     </div>
                                 ))}

@@ -30,27 +30,26 @@ export async function generateProtectedPreview(inputBuffer, { artistName, mandal
         <pattern id="interference" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <line x1="0" y1="0" x2="0" y2="40" stroke="black" stroke-width="1" stroke-opacity="0.05" />
         </pattern>
+        <pattern id="watermark-pattern" width="400" height="200" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)">
+          <text 
+            x="200" 
+            y="100" 
+            text-anchor="middle" 
+            font-family="Arial, sans-serif" 
+            font-weight="bold" 
+            fill="black"
+          >
+            <tspan x="200" dy="-10" font-size="32" fill-opacity="0.1">${artistName.toUpperCase()}</tspan>
+            <tspan x="200" dy="40" font-size="18" fill-opacity="0.08">PROJECT: ${mandalName.toUpperCase()}</tspan>
+            <tspan x="200" dy="30" font-size="14" fill-opacity="0.05">© ${year} • PREVIEW ONLY</tspan>
+          </text>
+        </pattern>
       </defs>
 
-      <!-- Draw Grid and Interference directly WITHOUT a covering rect background -->
+      <!-- Draw Grid, Interference and Tiled Watermark -->
       <rect width="100%" height="100%" fill="url(#grid)" fill-opacity="1" />
       <rect width="100%" height="100%" fill="url(#interference)" fill-opacity="1" />
-
-      <!-- Centered rotated watermark -->
-      <g transform="rotate(-20, ${previewWidth / 2}, ${previewHeight / 2})">
-        <text 
-          x="${previewWidth / 2}" 
-          y="${previewHeight / 2}" 
-          text-anchor="middle" 
-          font-family="Arial, sans-serif" 
-          font-weight="bold" 
-          fill="black"
-        >
-          <tspan x="${previewWidth / 2}" dy="-20" font-size="48" fill-opacity="0.15">${artistName.toUpperCase()}</tspan>
-          <tspan x="${previewWidth / 2}" dy="50" font-size="28" fill-opacity="0.12">PROJECT: ${mandalName.toUpperCase()}</tspan>
-          <tspan x="${previewWidth / 2}" dy="35" font-size="20" fill-opacity="0.08">© ${year} OMD CREATIONS • PREVIEW ONLY</tspan>
-        </text>
-      </g>
+      <rect width="100%" height="100%" fill="url(#watermark-pattern)" fill-opacity="1" />
     </svg>
   `;
 

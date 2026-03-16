@@ -12,6 +12,9 @@ export default function ClientPortal({ params }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hasPaid, setHasPaid] = useState(false);
+  const [isBlurred, setIsBlurred] = useState(false);
+  const [showCaptureWarning, setShowCaptureWarning] = useState(false);
+  const [warningType, setWarningType] = useState("");
 
   const fetchData = async () => {
     try {
@@ -29,6 +32,52 @@ export default function ClientPortal({ params }) {
 
   useEffect(() => {
     fetchData();
+
+    // Protection logic: Blur on focus loss
+    const handleBlur = () => setIsBlurred(true);
+    const handleFocus = () => setIsBlurred(false);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') {
+        setIsBlurred(true);
+      } else {
+        setIsBlurred(false);
+      }
+    };
+
+    // Keyboard protection (Shortcuts)
+    const handleKeyDown = (e) => {
+      // PrintScreen (Key name 'PrintScreen')
+      if (e.key === 'PrintScreen') {
+        setWarningType("SCREENSHOT ATTEMPTED");
+        setShowCaptureWarning(true);
+        setTimeout(() => setShowCaptureWarning(false), 5000);
+      }
+      // Ctrl+P (Print)
+      if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault();
+        setWarningType("PRINTING DISABLED");
+        setShowCaptureWarning(true);
+        setTimeout(() => setShowCaptureWarning(false), 5000);
+      }
+      // Win+Shift+S (Snippet) - partially detectable via key combo
+      if (e.metaKey && e.shiftKey && e.key === 'S') {
+         setWarningType("SNIPPET ATTEMPTED");
+         setShowCaptureWarning(true);
+         setTimeout(() => setShowCaptureWarning(false), 5000);
+      }
+    };
+
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [token]);
 
   const handleSelectConcept = async (conceptId) => {
@@ -61,7 +110,21 @@ export default function ClientPortal({ params }) {
   const isCompleted = project.status === 'completed';
 
   return (
-    <div className="bg-background min-h-screen pb-20 font-sans">
+    <div className={cn(
+        "bg-background min-h-screen pb-20 font-sans transition-all duration-500",
+        isBlurred ? "blur-[60px] grayscale brightness-50 pointer-events-none" : "blur-0"
+    )}>
+      {/* Security Warning Overlay */}
+      {showCaptureWarning && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-red-600/90 backdrop-blur-xl animate-in fade-in zoom-in duration-300 pointer-events-none p-10 text-center">
+             <div className="space-y-4">
+                <ShieldAlert size={80} className="text-white mx-auto animate-bounce" />
+                <h2 className="text-4xl font-black text-white tracking-tighter uppercase">{warningType}</h2>
+                <p className="text-white/80 font-bold uppercase tracking-widest text-sm">Action logged. Unauthorized distribution is prohibited.</p>
+             </div>
+          </div>
+      )}
+
       {/* Header */}
       <header className="bg-card border-b border-muted p-5 sticky top-0 z-30 flex justify-between items-center shadow-lg">
         <div>

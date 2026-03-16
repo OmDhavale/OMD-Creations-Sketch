@@ -33,7 +33,9 @@ export async function uploadProjectSketch(hdFileUri, previewBuffer) {
 
   return {
     hdUrl: hdResult.secure_url,
+    hdPublicId: hdResult.public_id,
     previewUrl: previewResult.secure_url,
+    previewPublicId: previewResult.public_id,
   };
 }
 
@@ -42,6 +44,11 @@ export async function uploadPaymentScreenshot(fileUri) {
     folder: 'payments',
   });
   return result.secure_url;
+}
+
+export async function deleteFromCloudinary(publicId) {
+  if (!publicId) return null;
+  return await cloudinary.uploader.destroy(publicId);
 }
 
 export default cloudinary;

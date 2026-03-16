@@ -39,12 +39,14 @@ export async function POST(req, { params }) {
     });
 
     // 2. Upload both to Cloudinary
-    const { hdUrl, previewUrl } = await uploadProjectSketch(fileUri, previewBuffer);
+    const { hdUrl, hdPublicId, previewUrl, previewPublicId } = await uploadProjectSketch(fileUri, previewBuffer);
 
     const sketch = await Sketch.create({
       projectId: id,
       hdImageUrl: hdUrl,
+      hdPublicId,
       previewImageUrl: previewUrl,
+      previewPublicId,
     });
 
     // Automatically update project status to sketch_preview if it was in concept or awaiting_advance
